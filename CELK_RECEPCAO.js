@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         CELK Recepção - Auto CNS
 // @namespace    http://tampermonkey.net/
-// @version      1.0.0
-// @description  Preenche automaticamente o CNS no formulário de recepção quando informado via querystring
+// @version      1.0.2
+// @description  Automatiza busca por CNS e adiciona atalho de WhatsApp na recepção
 // @match        https://florianopolis.celk.com.br/atendimento/recepcao/recepcao*
 // @run-at       document-idle
 // @grant        none
@@ -13,7 +13,121 @@
 
   const params = new URLSearchParams(window.location.search);
   const autoCNS = params.get("autoCNS");
-  if (!autoCNS) return;
+
+  let alreadyProcessed = false;
+  let selectedPatientName = "";
+
+  const css = `
+#celk-recepcao-toolkit {
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  z-index: 999999;
+  background: linear-gradient(180deg, #ffffff, #eef3fb);
+  border: 1px solid #d7e0ef;
+  text-align: center;
+  top: 30%;
+  left: 78%;
+  box-shadow: 2px 4px 16px -4px rgba(0, 0, 0, 0.45);
+  min-width: 220px;
+  padding: 10px;
+  border-radius: 10px;
+  font-family: Arial, sans-serif;
+}
+#celk-recepcao-toolkitheader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px;
+  cursor: move;
+  background: #02a093;
+  color: #fff;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  font-weight: bold;
+  letter-spacing: 0.4px;
+}
+#celk-recepcao-toolkit select {
+  margin-bottom: 8px;
+  padding: 6px;
+  border-radius: 6px;
+  border: 1px solid #cbd5f5;
+}
+.celk-recepcao-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  text-decoration: none;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  user-select: none;
+  font-weight: bold;
+  color: #053a1e;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  background: linear-gradient(135deg, #b1ffcf, #7beaa2);
+  border: none;
+  transition: transform 0.12s ease;
+}
+.celk-recepcao-btn:hover { transform: translateY(-1px); }
+.celk-recepcao-btn:active { transform: translateY(1px); }
+  `.trim();
+
+  const styleEl = document.createElement("style");
+  styleEl.textContent = css;
+  document.head.appendChild(styleEl);
+
+  function dragElement(elmnt) {
+    let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+    const header = document.getElementById(elmnt.id + "header");
+    (header || elmnt).onmousedown = dragMouseDown;
+
+    function dragMouseDown(e) {
+      e = e || window.event;
+      e.preventDefault();
+      pos3 = e.clientX;
+      pos4 = e.clientY;
+      document.onmouseup = closeDragElement;
+      document.onmousemove = elementDrag;
+    }
+
+    function elementDrag(e) {
+      e = e || window.event;
+      e.preventDefault();
+      pos1 = pos3 - e.clientX;
+      pos2 = pos4 - e.clientY;
+      pos3 = e.clientX;
+      pos4 = e.clientY;
+      elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
+      elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+    }
+
+    function closeDragElement() {
+      document.onmouseup = null;
+      document.onmousemove = null;
+    }
+  }
+
+  function ensurePopup() {
+    let popup = document.getElementById("celk-recepcao-toolkit");
+    if (popup) return popup;
+
+    popup = document.createElement("div");
+    popup.id = "celk-recepcao-toolkit";
+    popup.innerHTML = `
+      <div id="celk-recepcao-toolkitheader">💬 WhatsApp</div>
+      <select id="celk-recepcao-select"></select>
+      <button type="button" class="celk-recepcao-btn" id="celk-recepcao-open">
+        <span>📱</span><span>Enviar Mensagem</span>
+      </button>
+    `;
+    document.body.appendChild(popup);
+    dragElement(popup);
+    return popup;
+  }
 
   function waitForElement(selector, timeout = 8000) {
     return new Promise((resolve, reject) => {
@@ -31,6 +145,31 @@
     });
   }
 
+  function waitForResultRow(timeout = 8000) {
+    return new Promise((resolve, reject) => {
+      const start = Date.now();
+      const loop = () => {
+        const table = document.querySelector('table[wicketpath="panelContainer_nodePanel_form_table_table"]');
+        if (table) {
+          const rows = Array.from(table.querySelectorAll("tbody tr")).filter(
+            (tr) => !tr.querySelector(".dataTables_empty")
+          );
+          if (rows.length) {
+            resolve(rows[0]);
+            return;
+          }
+        }
+
+        if (Date.now() - start > timeout) {
+          reject(new Error("Nenhum resultado na tabela de pacientes."));
+          return;
+        }
+        setTimeout(loop, 200);
+      };
+      loop();
+    });
+  }
+
   function typeText(input, text) {
     input.focus();
     input.value = text;
@@ -38,16 +177,140 @@
     input.dispatchEvent(new Event("change", { bubbles: true, cancelable: true }));
   }
 
+  function triggerClick(el) {
+    if (!el) return false;
+    ["mousedown", "mouseup", "click"].forEach(type => {
+      el.dispatchEvent(new MouseEvent(type, { bubbles: true, cancelable: true, view: window }));
+    });
+    return true;
+  }
+
+  function extractPhones() {
+    const input = document.querySelector('input[wicketpath="panelContainer_nodePanel_form_panelInformacoesPaciente_container_usuarioCadsus.telefonesCelularFormatado"]');
+    const raw = input?.value?.trim();
+    if (!raw) return [];
+    const matches = raw.split(/[/|]/).map(str => str.trim()).filter(Boolean);
+    const phones = [];
+    const seen = new Set();
+    matches.forEach(label => {
+      const digits = (label.match(/\d+/g) || []).join("");
+      if (!digits || seen.has(digits)) return;
+      seen.add(digits);
+      phones.push({ label, digits });
+    });
+    return phones;
+  }
+
+  function formatPhone(digits) {
+    if (!digits) return "";
+    let phone = digits.replace(/\D+/g, "");
+    if (phone.length <= 11 && !phone.startsWith("55")) {
+      phone = "55" + phone;
+    }
+    return phone;
+  }
+
+  function getPatientNameFallback() {
+    if (selectedPatientName) return selectedPatientName;
+    const table = document.querySelector('table[wicketpath="panelContainer_nodePanel_form_table_table"]');
+    const selectedRow = table?.querySelector("tbody tr.selected");
+    const selectedName = selectedRow?.querySelector("td:nth-child(3)")?.textContent?.trim();
+    if (selectedName) return selectedName;
+
+    const firstRow = table?.querySelector("tbody tr:not(.dataTables_empty)");
+    const firstName = firstRow?.querySelector("td:nth-child(3)")?.textContent?.trim();
+    if (firstName) return firstName;
+
+    const searchName = document.querySelector('input[wicketpath="panelContainer_nodePanel_form_nome"]')?.value?.trim();
+    return searchName || "paciente";
+  }
+
+  function openWhatsApp() {
+    const select = document.getElementById("celk-recepcao-select");
+    const currentPhones = extractPhones();
+    if (!currentPhones.length) {
+      alert("Nenhum telefone de contato disponível.");
+      return;
+    }
+    if (!select.options.length) {
+      populatePhoneSelect();
+    }
+    const digits = select.value || currentPhones[0].digits;
+    const phone = formatPhone(digits);
+    if (!phone) {
+      alert("Telefone inválido.");
+      return;
+    }
+
+    const name = getPatientNameFallback();
+    const message = `ola ${name} , exame teste`;
+    const encoded = encodeURIComponent(message);
+    window.open(`https://web.whatsapp.com/send?phone=${phone}&text=${encoded}`, "_blank", "noopener");
+  }
+
+  function populatePhoneSelect() {
+    const select = document.getElementById("celk-recepcao-select");
+    if (!select) return;
+    select.innerHTML = "";
+    const phones = extractPhones();
+    if (!phones.length) {
+      const option = document.createElement("option");
+      option.textContent = "Sem contatos";
+      option.value = "";
+      select.appendChild(option);
+      select.disabled = true;
+      return;
+    }
+    select.disabled = false;
+    phones.forEach(phone => {
+      const option = document.createElement("option");
+      option.value = phone.digits;
+      option.textContent = phone.label;
+      select.appendChild(option);
+    });
+  }
+
+  function clearAutoCNSParam() {
+    const url = new URL(window.location.href);
+    url.searchParams.delete("autoCNS");
+    window.history.replaceState({}, document.title, url.pathname + url.search + window.location.hash);
+  }
+
   async function fillForm() {
+    if (!autoCNS || alreadyProcessed) return;
     try {
+      alreadyProcessed = true;
       const cnsInput = await waitForElement('input[wicketpath="panelContainer_nodePanel_form_numeroCartao"]');
       typeText(cnsInput, autoCNS);
       const btnProcurar = document.querySelector('input[wicketpath="panelContainer_nodePanel_form_btnProcurar"]');
       btnProcurar?.click();
+      const row = await waitForResultRow();
+      selectedPatientName = row.querySelector("td:nth-child(3)")?.textContent?.trim() || selectedPatientName;
+      clearAutoCNSParam();
     } catch (err) {
       console.warn("Falhou ao preencher CNS automaticamente:", err);
     }
   }
 
-  fillForm();
+  function setupRowSelectionCapture() {
+    const table = document.querySelector('table[wicketpath="panelContainer_nodePanel_form_table_table"]');
+    if (!table) return;
+    table.addEventListener("click", (event) => {
+      const row = event.target.closest("tr");
+      if (!row) return;
+      selectedPatientName = row.querySelector("td:nth-child(3)")?.textContent?.trim() || selectedPatientName;
+      setTimeout(populatePhoneSelect, 300);
+    });
+  }
+
+  function init() {
+    ensurePopup();
+    populatePhoneSelect();
+    setupRowSelectionCapture();
+    const btn = document.getElementById("celk-recepcao-open");
+    btn?.addEventListener("click", openWhatsApp);
+    fillForm();
+  }
+
+  init();
 })();
