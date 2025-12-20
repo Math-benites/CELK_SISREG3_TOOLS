@@ -97,6 +97,9 @@
       <button type="button" class="toolkit-btn" id="btn-copy-cns">
         <span>📋</span><span>Copiar CNS</span>
       </button>
+      <button type="button" class="toolkit-btn" id="btn-open-celk">
+        <span>🔗</span><span>Abrir CELK</span>
+      </button>
       <div id="toolkit-feedback" style="font-size:12px;color:#02a093;margin-top:6px;display:none;"></div>
     `;
     document.body.appendChild(popup);
@@ -157,16 +160,21 @@
     return "";
   }
 
-  async function copyCNS(feedbackEl) {
+  function getCurrentCNS(feedbackEl) {
     const frameDoc = getFrameDocument();
     const cns = extractCNS(frameDoc);
     if (!cns) {
       feedbackEl.style.display = "block";
       feedbackEl.style.color = "#c92a2a";
       feedbackEl.textContent = "CNS não encontrado na página.";
-      return;
+      return "";
     }
+    return cns;
+  }
 
+  async function copyCNS(feedbackEl) {
+    const cns = getCurrentCNS(feedbackEl);
+    if (!cns) return;
     try {
       await navigator.clipboard.writeText(cns);
       feedbackEl.style.display = "block";
@@ -181,14 +189,29 @@
     }
   }
 
+  function openCelk(feedbackEl) {
+    const cns = getCurrentCNS(feedbackEl);
+    if (!cns) return;
+    const url = new URL("https://florianopolis.celk.com.br/atendimento/recepcao/recepcao");
+    url.search = "?39&cdPrg=318";
+    url.search += `&autoCNS=${encodeURIComponent(cns)}`;
+    window.open(url.toString(), "_blank", "noopener");
+  }
+
   function init() {
     const popup = ensurePopup();
     const btnCopy = popup.querySelector("#btn-copy-cns");
+    const btnOpenCelk = popup.querySelector("#btn-open-celk");
     const feedbackEl = popup.querySelector("#toolkit-feedback");
 
     btnCopy.addEventListener("click", (e) => {
       e.preventDefault();
       copyCNS(feedbackEl);
+    });
+
+    btnOpenCelk.addEventListener("click", (e) => {
+      e.preventDefault();
+      openCelk(feedbackEl);
     });
   }
 
