@@ -13,8 +13,8 @@
 
   const optionsOcr = [
     { label: "Enviado via Whatsapp", value: "Mensagem enviada via whatsapp" },
-    { label: "Impresso e entregue para ACS-CONTATO DESATUALIZADO ", value: "Impresso e entregue para ACS-CONTATO DESATUALIZADO" },
-    { label: "Impresso e entregue para ACS-NUMERO DO SISCAN", value: "Impresso e entregue para ACS-NUMERO DO SISCAN" },
+    { label: "Impresso e entregue para ACS-CONTATO DESATUALIZADO", value: "Impresso e entregue para ACS-CONTATO DESATUALIZADO" },
+    { label: "Impresso e entregue para ACS-SISCAN MAMOGRAFIA", value: "Impresso e entregue para ACS-SISCAN MAMOGRAFIA" },
   ];
 
   // ---------- CSS (injeção) ----------
@@ -89,7 +89,6 @@
       </div>
       <a href="#" class="tm-btn tm-blue" id="open-whats">Abrir WhatsApp</a>
       <a href="#" class="tm-btn tm-blue" id="btn-ocr">Lançar Ocorrência</a>
-      <a href="#" class="tm-btn tm-blue" id="btn-imprimir">Imprimir Comprovantes</a>
       <a href="#" class="tm-btn tm-green" id="btn-confirmar">Confirmar Contato</a>
     `;
     document.body.appendChild(popup);
@@ -248,31 +247,6 @@
     if (btn) btn.click();
   }
 
-  async function imprimirComprovantes() {
-    const btn = document.querySelector('a[name="btnImprimir"]');
-    if (!btn) return;
-
-    btn.click();
-
-    try {
-      const modalBtnSelector = '#control-bottom a.button.print[href*="ILinkListener"], a[wicketpath*="btnImprimir"][href*="ILinkListener"]';
-      const btnModal = await waitForElement(modalBtnSelector, 8000);
-      const href = btnModal.getAttribute("href");
-
-      if (href && href !== "#") {
-        const url = new URL(href, window.location.href).toString();
-        window.open(url, "_blank", "noopener,noreferrer");
-        return;
-      }
-
-      btnModal.click();
-    } catch (e) {
-      console.log("Falhou ao acionar impressão automática:", e);
-      const fallbackBtn = document.querySelector('#control-bottom a.button.print, a[wicketpath*="btnImprimir"]');
-      fallbackBtn?.click();
-    }
-  }
-
   function openWhats(selectTel) {
     const { pacienteName, dataAgendamento, procedimento } = getPacienteData();
 
@@ -315,7 +289,6 @@ ${procedimento}
     const selectTel = popup.querySelector("#selectTel");
     const btnWhats = popup.querySelector("#open-whats");
     const btnOcr = popup.querySelector("#btn-ocr");
-    const btnImprimir = popup.querySelector("#btn-imprimir");
     const btnConfirmar = popup.querySelector("#btn-confirmar");
 
     // popular contatos
@@ -335,11 +308,6 @@ ${procedimento}
     btnOcr.addEventListener("click", (e) => {
       e.preventDefault();
       lncOcr();
-    });
-
-    btnImprimir.addEventListener("click", (e) => {
-      e.preventDefault();
-      imprimirComprovantes();
     });
 
     btnConfirmar.addEventListener("click", (e) => {
