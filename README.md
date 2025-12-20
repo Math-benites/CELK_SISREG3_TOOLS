@@ -52,7 +52,8 @@ Compatível com iframes e navegação interna do SISREG3.
 
 ## 🧩 Instalação
 
-1. Instale a extensão **Tampermonkey** no navegador.
+1. Instale a extensão **Tampermonkey** no Google Chrome:  
+   👉 https://chromewebstore.google.com/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo
 2. Clique no ícone do Tampermonkey.
 3. Vá em **Utilitário**.
 4. Selecione **Adicionar novo script**.
@@ -61,7 +62,6 @@ Compatível com iframes e navegação interna do SISREG3.
 
 Após a instalação, os toolkits serão carregados automaticamente ao acessar os sistemas correspondentes.
 
-
 ---
 
 ## ⚠️ Observações
@@ -69,8 +69,3 @@ Após a instalação, os toolkits serão carregados automaticamente ao acessar o
 - Uso restrito a ambientes autorizados
 - Lida com dados sensíveis
 - Mudanças no sistema podem exigir ajustes no script
-
----
-
-## 📁 Estrutura
-
