@@ -335,7 +335,7 @@
     popup = hostDoc.createElement("div");
     popup.id = "sisreg-toolkit";
     popup.innerHTML = `
-      <div id="sisreg-toolkitheader">📌 CNS Toolkit</div>
+      <div id="sisreg-toolkitheader">📌 Regulação/SISREG </div>
       <button type="button" class="toolkit-btn" id="btn-copy-cns">
         <span>📋</span><span>Copiar CNS</span>
       </button>
