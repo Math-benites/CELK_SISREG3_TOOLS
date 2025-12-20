@@ -17,9 +17,10 @@
   const procCode = params.get("procCode") || "";
   const unitDesc = params.get("unitDesc") || "";
   const dataHora = params.get("dataHora") || "";
+  const patientNameParam = (params.get("patientName") || "").trim();
 
   let alreadyProcessed = false;
-  let selectedPatientName = "";
+  let selectedPatientName = patientNameParam;
   let lastContactValue = "";
   let lastPhones = [];
 
@@ -151,6 +152,8 @@
       </button>
     `;
     document.body.appendChild(popup);
+    const select = popup.querySelector("#celk-recepcao-select");
+    if (select) select.dataset.loaded = "false";
     dragElement(popup);
     return popup;
   }
@@ -282,11 +285,12 @@
     const select = document.getElementById("celk-recepcao-select");
     const currentPhones = extractPhones();
     if (!currentPhones.length) {
-      alert("Nenhum telefone de contato disponível.");
+      alert("Nenhum telefone de contato dispon?vel.");
       return;
     }
-    if (!select.options.length) {
-      populatePhoneSelect();
+    if (!select.dataset.loaded || select.dataset.loaded !== "true") {
+      alert('Clique em "Atualizar contatos" antes de enviar.');
+      return;
     }
     const digits = select.value || currentPhones[0].digits;
     const phone = formatPhone(digits);
@@ -295,14 +299,17 @@
       return;
     }
 
-    const name = await resolvePatientName();
+    const fallbackName = await resolvePatientName();
+    const name =
+      (patientNameParam && patientNameParam.trim()) ||
+      (selectedPatientName && selectedPatientName.trim()) ||
+      fallbackName;
     const dataTexto = dataHora ? dataHora.trim() : "____";
     const procedimentoTexto = procDesc ? procDesc.trim() : "____";
-    const unidadeTexto = unitDesc ? unitDesc.trim() : "____";
 
     const message = `*Olá ${name}.*
 
-*Somos do Centro de Saúde Itacorubi/Regulaçao.*
+*Somos do Centro de Saúde Itacorubi/Regulação.*
 
 🚨 *ATENÇÃO* 🚨️
 *Data do agendamento:* ${dataTexto}
@@ -312,22 +319,24 @@ SES - ${procedimentoTexto}
 *🚨FAVOR CONFIRMAR O RECEBIMENTO DESTA MENSAGEM.🚨*
 👉 A autorização deve ser retirada na recepção do Centro de Saúde Itacorubi, no horário das 7h às 16h30. Se preferir, podemos enviar o documento em PDF para que você possa imprimir.
 👉 Em caso de cancelamento, avisar com 3 dias de antecedência.
-👉 Se o seu agendamento estiver marcado para sábado ou domingo, essa data é apenas fictícia. Por favor, siga as orientações indicadas na sua autorização
+👉 Se o seu agendamento estiver marcado para sábado ou domingo, essa data é apenas fictícia. Por favor, siga as orientações indicadas na sua autorização.
 
 🚨 *IMPORTANTE: LEVAR PEDIDO MÉDICO + ESTE COMPROVANTE DE AGENDAMENTO.*
 
 *Atenciosamente,*
 *ADM-Regulação.*
 *48-92004 9305*`;
+
     const encoded = encodeURIComponent(message);
     window.open(`https://web.whatsapp.com/send?phone=${phone}&text=${encoded}`, "_blank", "noopener");
   }
-
   function populatePhoneSelect(force = false) {
     const select = document.getElementById("celk-recepcao-select");
     const loader = document.getElementById("celk-recepcao-loader");
     if (!select) return;
     if (loader) loader.style.display = "block";
+    select.disabled = true;
+    select.dataset.loaded = "false";
     if (force || !lastPhones.length) {
       select.innerHTML = "";
       const phones = extractPhones();
@@ -351,29 +360,10 @@ SES - ${procedimentoTexto}
         option.textContent = phone.label;
         select.appendChild(option);
       });
+      select.dataset.loaded = "true";
+      select.disabled = false;
     }
     if (loader) loader.style.display = "none";
-  }
-
-  function refreshPhoneSelect() {
-    const select = document.getElementById("celk-recepcao-select");
-    if (!select) return;
-    select.innerHTML = "";
-    if (!lastPhones.length) {
-      const option = document.createElement("option");
-      option.textContent = "Sem contatos";
-      option.value = "";
-      select.appendChild(option);
-      select.disabled = true;
-      return;
-    }
-    select.disabled = false;
-    lastPhones.forEach(phone => {
-      const option = document.createElement("option");
-      option.value = phone.digits;
-      option.textContent = phone.label;
-      select.appendChild(option);
-    });
   }
 
   function clearAutoCNSParam() {
