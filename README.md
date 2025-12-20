@@ -52,10 +52,15 @@ Compatível com iframes e navegação interna do SISREG3.
 
 ## 🧩 Instalação
 
-1. Instale o **Tampermonkey**
-2. Crie um novo script
-3. Cole o arquivo `.user.js`
-4. Salve
+1. Instale a extensão **Tampermonkey** no navegador.
+2. Clique no ícone do Tampermonkey.
+3. Vá em **Utilitário**.
+4. Selecione **Adicionar novo script**.
+5. **Importe todos os arquivos `.js`** do repositório.
+6. Salve os scripts.
+
+Após a instalação, os toolkits serão carregados automaticamente ao acessar os sistemas correspondentes.
+
 
 ---
 
