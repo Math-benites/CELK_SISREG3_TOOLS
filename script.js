@@ -89,6 +89,7 @@
       </div>
       <a href="#" class="tm-btn tm-blue" id="open-whats">Abrir WhatsApp</a>
       <a href="#" class="tm-btn tm-blue" id="btn-ocr">Lançar Ocorrência</a>
+      <a href="#" class="tm-btn tm-blue" id="btn-imprimir">Imprimir Comprovantes</a>
       <a href="#" class="tm-btn tm-green" id="btn-confirmar">Confirmar Contato</a>
     `;
     document.body.appendChild(popup);
@@ -242,6 +243,31 @@
     }
   }
 
+  async function imprimirComprovantes() {
+    const btn = document.querySelector('a[name="btnImprimir"]');
+    if (!btn) return;
+
+    btn.click();
+
+    try {
+      const btnModal = await waitForElement('a[wicketpath*="formModal"][wicketpath*="btnImprimir"]', 8000);
+      const href = btnModal.getAttribute("href");
+
+      if (href && href !== "#") {
+        const url = new URL(href, window.location.href).toString();
+        window.open(url, "_blank", "noopener,noreferrer");
+      } else {
+        btnModal.click();
+      }
+
+      // fecha modal para manter tela limpa
+      const closeBtn = document.querySelector('a[wicketpath*="formModal"][wicketpath*="btnFechar"], a[name*="btnFechar"]');
+      closeBtn?.click();
+    } catch (e) {
+      console.log("Falhou ao acionar impressão:", e);
+    }
+  }
+
   function btnConfirmarFnc() {
     const btn = document.querySelector('a[name="btnConfirmarContato"]');
     if (btn) btn.click();
@@ -289,6 +315,7 @@ ${procedimento}
     const selectTel = popup.querySelector("#selectTel");
     const btnWhats = popup.querySelector("#open-whats");
     const btnOcr = popup.querySelector("#btn-ocr");
+    const btnImprimir = popup.querySelector("#btn-imprimir");
     const btnConfirmar = popup.querySelector("#btn-confirmar");
 
     // popular contatos
@@ -308,6 +335,11 @@ ${procedimento}
     btnOcr.addEventListener("click", (e) => {
       e.preventDefault();
       lncOcr();
+    });
+
+    btnImprimir.addEventListener("click", (e) => {
+      e.preventDefault();
+      imprimirComprovantes();
     });
 
     btnConfirmar.addEventListener("click", (e) => {
