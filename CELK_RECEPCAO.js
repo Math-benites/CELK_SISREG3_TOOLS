@@ -22,7 +22,6 @@
   let selectedPatientName = "";
   let lastContactValue = "";
   let lastPhones = [];
-  let autoRefreshTimer = null;
 
   const css = `
 #celk-recepcao-toolkit {
@@ -66,6 +65,16 @@
   font-size: 12px;
   color: #02a093;
   margin-bottom: 6px;
+}
+.celk-recepcao-refresh {
+  margin-bottom: 10px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  background: linear-gradient(135deg, #a9d8ff, #6bb4ff);
+  color: #042746;
+  font-weight: bold;
 }
 .celk-recepcao-btn {
   display: flex;
@@ -133,7 +142,10 @@
     popup.innerHTML = `
       <div id="celk-recepcao-toolkitheader">💬 WhatsApp</div>
       <div class="celk-recepcao-loader" id="celk-recepcao-loader">Atualizando contatos...</div>
-      <select id="celk-recepcao-select"></select>
+      <button type="button" class="celk-recepcao-refresh" id="celk-recepcao-refresh">Atualizar contatos</button>
+      <select id="celk-recepcao-select">
+        <option value="">Clique em "Atualizar contatos"</option>
+      </select>
       <button type="button" class="celk-recepcao-btn" id="celk-recepcao-open">
         <span>📱</span><span>Enviar Mensagem</span>
       </button>
@@ -229,19 +241,44 @@
   function getPatientNameFallback() {
     if (selectedPatientName) return selectedPatientName;
     const table = document.querySelector('table[wicketpath="panelContainer_nodePanel_form_table_table"]');
-    const selectedRow = table?.querySelector("tbody tr.selected");
-    const selectedName = selectedRow?.querySelector("td:nth-child(3)")?.textContent?.trim();
-    if (selectedName) return selectedName;
+    if (table) {
+      const rows = Array.from(table.querySelectorAll("tbody tr"));
+      const dataRows = rows.filter(row => {
+        const cells = row.querySelectorAll("td");
+        if (cells.length < 3) return false;
+        if (cells[0].classList.contains("dataTables_empty")) return false;
+        return true;
+      });
 
-    const firstRow = table?.querySelector("tbody tr:not(.dataTables_empty)");
-    const firstName = firstRow?.querySelector("td:nth-child(3)")?.textContent?.trim();
-    if (firstName) return firstName;
+      const selectedRow = dataRows.find(row => row.classList.contains("selected"));
+      const selectedName = selectedRow?.querySelector("td:nth-child(3)")?.textContent?.trim();
+      if (selectedName) return selectedName;
+
+      if (dataRows.length) {
+        const firstName = dataRows[0]?.querySelector("td:nth-child(3)")?.textContent?.trim();
+        if (firstName) return firstName;
+      }
+    }
 
     const searchName = document.querySelector('input[wicketpath="panelContainer_nodePanel_form_nome"]')?.value?.trim();
     return searchName || "paciente";
   }
 
-  function openWhatsApp() {
+  async function resolvePatientName() {
+    let name = getPatientNameFallback();
+    if (!name || name.toLowerCase() === "paciente") {
+      try {
+        const row = await waitForResultRow(3000);
+        selectedPatientName = row.querySelector("td:nth-child(3)")?.textContent?.trim() || selectedPatientName;
+        name = selectedPatientName;
+      } catch (err) {
+        console.warn("Não foi possível garantir nome do paciente:", err);
+      }
+    }
+    return name || "paciente";
+  }
+
+  async function openWhatsApp() {
     const select = document.getElementById("celk-recepcao-select");
     const currentPhones = extractPhones();
     if (!currentPhones.length) {
@@ -258,21 +295,30 @@
       return;
     }
 
-    const name = getPatientNameFallback();
-    let message = `Olá ${name}.`;
-    if (procDesc) {
-      message += `\nProcedimento: ${procDesc}`;
-    }
-    if (procCode) {
-      message += `\nCódigo: ${procCode}`;
-    }
-    if (unitDesc) {
-      message += `\nUnidade: ${unitDesc}`;
-    }
-    if (dataHora) {
-      message += `\nData/Horário: ${dataHora}`;
-    }
-    message += `\n\nExame teste.`;
+    const name = await resolvePatientName();
+    const dataTexto = dataHora ? dataHora.trim() : "____";
+    const procedimentoTexto = procDesc ? procDesc.trim() : "____";
+    const unidadeTexto = unitDesc ? unitDesc.trim() : "____";
+
+    const message = `*Olá ${name}.*
+
+*Somos do Centro de Saúde Itacorubi/Regulaçao.*
+
+🚨 *ATENÇÃO* 🚨️
+*Data do agendamento:* ${dataTexto}
+Sua consulta com especialista ou exame foi AUTORIZADO.
+SES - ${procedimentoTexto}
+
+*🚨FAVOR CONFIRMAR O RECEBIMENTO DESTA MENSAGEM.🚨*
+👉 A autorização deve ser retirada na recepção do Centro de Saúde Itacorubi, no horário das 7h às 16h30. Se preferir, podemos enviar o documento em PDF para que você possa imprimir.
+👉 Em caso de cancelamento, avisar com 3 dias de antecedência.
+👉 Se o seu agendamento estiver marcado para sábado ou domingo, essa data é apenas fictícia. Por favor, siga as orientações indicadas na sua autorização
+
+🚨 *IMPORTANTE: LEVAR PEDIDO MÉDICO + ESTE COMPROVANTE DE AGENDAMENTO.*
+
+*Atenciosamente,*
+*ADM-Regulação.*
+*48-92004 9305*`;
     const encoded = encodeURIComponent(message);
     window.open(`https://web.whatsapp.com/send?phone=${phone}&text=${encoded}`, "_blank", "noopener");
   }
@@ -295,6 +341,7 @@
         option.value = "";
         select.appendChild(option);
         select.disabled = true;
+        if (loader) loader.style.display = "none";
         return;
       }
       select.disabled = false;
@@ -346,7 +393,6 @@
       btnProcurar?.click();
       const row = await waitForResultRow();
       selectedPatientName = row.querySelector("td:nth-child(3)")?.textContent?.trim() || selectedPatientName;
-      setTimeout(populatePhoneSelect, 800);
       clearAutoCNSParam();
     } catch (err) {
       console.warn("Falhou ao preencher CNS automaticamente:", err);
@@ -360,19 +406,24 @@
       const row = event.target.closest("tr");
       if (!row) return;
       selectedPatientName = row.querySelector("td:nth-child(3)")?.textContent?.trim() || selectedPatientName;
-      setTimeout(populatePhoneSelect, 300);
+      lastPhones = [];
     });
   }
 
   function init() {
     ensurePopup();
-    populatePhoneSelect();
     setupRowSelectionCapture();
     const btn = document.getElementById("celk-recepcao-open");
-    btn?.addEventListener("click", openWhatsApp);
-    autoRefreshTimer = setInterval(() => {
+    btn?.addEventListener("click", (e) => {
+      e.preventDefault();
+      openWhatsApp();
+    });
+    const refreshBtn = document.getElementById("celk-recepcao-refresh");
+    refreshBtn?.addEventListener("click", (e) => {
+      e.preventDefault();
+      lastPhones = [];
       populatePhoneSelect(true);
-    }, 2000);
+    });
     fillForm();
   }
 
