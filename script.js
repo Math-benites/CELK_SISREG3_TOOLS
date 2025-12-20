@@ -24,26 +24,31 @@
   flex-direction: column;
   position: fixed;
   z-index: 999999;
-  background-color: #f1f1f1;
-  border: 1px solid #d3d3d3;
+  background: linear-gradient(180deg, #ffffff, #eef3fb);
+  border: 1px solid #d7e0ef;
   text-align: center;
   top: 27%;
   left: 80%;
-  box-shadow: 1px 1px 10px -1px #00000085;
-  min-width: 220px;
-  padding: 8px;
-  border-radius: 6px;
+  box-shadow: 2px 4px 16px -4px rgba(0, 0, 0, 0.45);
+  min-width: 230px;
+  padding: 10px;
+  border-radius: 12px;
   font-family: Arial, sans-serif;
 }
 #popup-whatsheader {
   display: flex;
-  padding: 10px;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px;
   cursor: move;
   z-index: 10;
-  background-color: #2196F3;
+  background: linear-gradient(135deg, #008cfc, #00c6ff);
   color: #fff;
-  border-radius: 4px;
-  margin-bottom: 8px;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  font-weight: bold;
+  letter-spacing: 0.5px;
 }
 #selectTel {
   margin-top: 5px;
@@ -55,17 +60,27 @@
   padding: 0 6px;
 }
 .tm-btn {
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   text-decoration: none;
-  padding: 8px 10px;
-  margin: 4px 0;
-  border-radius: 4px;
+  padding: 9px 12px;
+  margin: 5px 0;
+  border-radius: 8px;
   font-size: 14px;
   cursor: pointer;
   user-select: none;
+  font-weight: bold;
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
 }
-.tm-blue { background: #3aa0ff; color: white; }
-.tm-green { background: #19b66b; color: white; }
+.tm-blue { background: linear-gradient(135deg, #a9d8ff, #6bb4ff); }
+.tm-green { background: linear-gradient(135deg, #a9d8ff, #6bb4ff); }
+.tm-whats { background: linear-gradient(135deg, #b1ffcf, #7beaa2); color: #053a1e; }
+.tm-print { background: linear-gradient(135deg, #a9d8ff, #6bb4ff); }
+.tm-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); }
 .tm-btn:active { transform: translateY(1px); }
   `.trim();
 
@@ -81,16 +96,16 @@
     popup = document.createElement("div");
     popup.id = "popup-whats";
     popup.innerHTML = `
-      <div id="popup-whatsheader">Whats / Ocorrência</div>
+      <div id="popup-whatsheader">⚙️ Whats / Ocorrência</div>
       <div class="field-select">
         <select id="selectTel">
           <option value="0" selected>Selecione um contato</option>
         </select>
       </div>
-      <a href="#" class="tm-btn tm-blue" id="open-whats">Abrir WhatsApp</a>
-      <a href="#" class="tm-btn tm-blue" id="btn-ocr">Lançar Ocorrência</a>
-      <a href="#" class="tm-btn tm-blue" id="btn-imprimir">Imprimir Comprovantes</a>
-      <a href="#" class="tm-btn tm-green" id="btn-confirmar">Confirmar Contato</a>
+      <a href="#" class="tm-btn tm-whats" id="open-whats"><span>💬</span><span>Abrir WhatsApp</span></a>
+      <a href="#" class="tm-btn tm-blue" id="btn-ocr"><span>📝</span><span>Lançar Ocorrência</span></a>
+      <a href="#" class="tm-btn tm-blue" id="btn-imprimir"><span>🖨️</span><span>Imprimir Comprovantes</span></a>
+      <a href="#" class="tm-btn tm-blue" id="btn-confirmar"><span>✅</span><span>Confirmar Contato</span></a>
     `;
     document.body.appendChild(popup);
     dragElement(popup);
