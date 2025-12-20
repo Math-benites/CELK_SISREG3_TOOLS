@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         CELK GEM - Popup Whats + Ocorrência
+// @name         CELK GEM TOOLKIT
 // @namespace    http://tampermonkey.net/
-// @version      1.0.0
+// @version      1.0
 // @description  Popup arrastável para abrir WhatsApp, lançar ocorrência e confirmar contato no CELK/GEM
 // @match        https://florianopolis.celk.com.br/gem/*
 // @run-at       document-idle
@@ -43,7 +43,7 @@
   padding: 12px;
   cursor: move;
   z-index: 10;
-  background: linear-gradient(135deg, #008cfc, #00c6ff);
+  background: #02a093;
   color: #fff;
   border-radius: 10px;
   margin-bottom: 10px;
@@ -96,7 +96,7 @@
     popup = document.createElement("div");
     popup.id = "popup-whats";
     popup.innerHTML = `
-      <div id="popup-whatsheader">⚙️ Whats / Ocorrência</div>
+      <div id="popup-whatsheader">📌 Regulação / Ocorrência</div>
       <div class="field-select">
         <select id="selectTel">
           <option value="0" selected>Selecione um contato</option>
@@ -105,7 +105,6 @@
       <a href="#" class="tm-btn tm-whats" id="open-whats"><span>💬</span><span>Abrir WhatsApp</span></a>
       <a href="#" class="tm-btn tm-blue" id="btn-ocr"><span>📝</span><span>Lançar Ocorrência</span></a>
       <a href="#" class="tm-btn tm-blue" id="btn-imprimir"><span>🖨️</span><span>Imprimir Comprovantes</span></a>
-      <a href="#" class="tm-btn tm-blue" id="btn-confirmar"><span>✅</span><span>Confirmar Contato</span></a>
     `;
     document.body.appendChild(popup);
     dragElement(popup);
@@ -283,11 +282,6 @@
     }
   }
 
-  function btnConfirmarFnc() {
-    const btn = document.querySelector('a[name="btnConfirmarContato"]');
-    if (btn) btn.click();
-  }
-
   function openWhats(selectTel) {
     const { pacienteName, dataAgendamento, procedimento } = getPacienteData();
 
@@ -331,7 +325,6 @@ ${procedimento}
     const btnWhats = popup.querySelector("#open-whats");
     const btnOcr = popup.querySelector("#btn-ocr");
     const btnImprimir = popup.querySelector("#btn-imprimir");
-    const btnConfirmar = popup.querySelector("#btn-confirmar");
 
     // popular contatos
     const numbers = collectNumbers();
@@ -357,10 +350,6 @@ ${procedimento}
       imprimirComprovantes();
     });
 
-    btnConfirmar.addEventListener("click", (e) => {
-      e.preventDefault();
-      btnConfirmarFnc();
-    });
   }
 
   // Wicket às vezes troca DOM depois do load: tenta iniciar e, se falhar, tenta de novo
