@@ -160,6 +160,51 @@
     return "";
   }
 
+  function extractProcedureInfo(rootDoc = document) {
+    const info = {
+      procedure: "",
+      procedureCode: "",
+      unit: "",
+      dataHora: "",
+    };
+
+    const allBodies = Array.from(rootDoc.querySelectorAll("tbody"));
+
+    allBodies.forEach((tbody) => {
+      const rows = Array.from(tbody.querySelectorAll("tr"));
+      rows.forEach((row, idx) => {
+        const rowText = row.innerText.replace(/\s+/g, " ").trim();
+
+        if (!info.procedure && rowText.includes("Procedimentos Solicitados")) {
+          const next = rows[idx + 1];
+          const cells = next?.querySelectorAll("td");
+          if (cells?.length) {
+            info.procedure = cells[0]?.innerText?.trim() || "";
+            info.procedureCode = cells[3]?.innerText?.trim() || "";
+          }
+        }
+
+        if (!info.unit && rowText.includes("Unidade Executante:")) {
+          const next = rows[idx + 1];
+          const cells = next?.querySelectorAll("td");
+          if (cells?.length) {
+            info.unit = cells[0]?.innerText?.trim() || "";
+          }
+        }
+
+        if (!info.dataHora && rowText.includes("Data e Horário de Atendimento:")) {
+          const next = rows[idx + 1];
+          const cells = next?.querySelectorAll("td");
+          if (cells?.length) {
+            info.dataHora = cells[3]?.innerText?.trim() || "";
+          }
+        }
+      });
+    });
+
+    return info;
+  }
+
   function getCurrentCNS(feedbackEl) {
     const frameDoc = getFrameDocument();
     const cns = extractCNS(frameDoc);
@@ -195,7 +240,13 @@
     const url = new URL("https://florianopolis.celk.com.br/atendimento/recepcao/recepcao");
     url.search = "?39&cdPrg=318";
     url.search += `&autoCNS=${encodeURIComponent(cns)}`;
-    window.open(url.toString(), "_blank", "noopener");
+    const frameDoc = getFrameDocument();
+    const procInfo = extractProcedureInfo(frameDoc);
+    if (procInfo.procedure) url.search += `&procDesc=${encodeURIComponent(procInfo.procedure)}`;
+    if (procInfo.procedureCode) url.search += `&procCode=${encodeURIComponent(procInfo.procedureCode)}`;
+    if (procInfo.unit) url.search += `&unitDesc=${encodeURIComponent(procInfo.unit)}`;
+    if (procInfo.dataHora) url.search += `&dataHora=${encodeURIComponent(procInfo.dataHora)}`;
+    window.open(url.toString(), "_blank", "noopener,noreferrer");
   }
 
   function init() {

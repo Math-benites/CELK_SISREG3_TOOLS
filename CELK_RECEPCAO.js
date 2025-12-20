@@ -13,9 +13,16 @@
 
   const params = new URLSearchParams(window.location.search);
   const autoCNS = params.get("autoCNS");
+  const procDesc = params.get("procDesc") || "";
+  const procCode = params.get("procCode") || "";
+  const unitDesc = params.get("unitDesc") || "";
+  const dataHora = params.get("dataHora") || "";
 
   let alreadyProcessed = false;
   let selectedPatientName = "";
+  let lastContactValue = "";
+  let lastPhones = [];
+  let autoRefreshTimer = null;
 
   const css = `
 #celk-recepcao-toolkit {
@@ -53,6 +60,12 @@
   padding: 6px;
   border-radius: 6px;
   border: 1px solid #cbd5f5;
+}
+.celk-recepcao-loader {
+  display: none;
+  font-size: 12px;
+  color: #02a093;
+  margin-bottom: 6px;
 }
 .celk-recepcao-btn {
   display: flex;
@@ -119,6 +132,7 @@
     popup.id = "celk-recepcao-toolkit";
     popup.innerHTML = `
       <div id="celk-recepcao-toolkitheader">💬 WhatsApp</div>
+      <div class="celk-recepcao-loader" id="celk-recepcao-loader">Atualizando contatos...</div>
       <select id="celk-recepcao-select"></select>
       <button type="button" class="celk-recepcao-btn" id="celk-recepcao-open">
         <span>📱</span><span>Enviar Mensagem</span>
@@ -188,6 +202,7 @@
   function extractPhones() {
     const input = document.querySelector('input[wicketpath="panelContainer_nodePanel_form_panelInformacoesPaciente_container_usuarioCadsus.telefonesCelularFormatado"]');
     const raw = input?.value?.trim();
+    lastContactValue = raw || "";
     if (!raw) return [];
     const matches = raw.split(/[/|]/).map(str => str.trim()).filter(Boolean);
     const phones = [];
@@ -198,6 +213,7 @@
       seen.add(digits);
       phones.push({ label, digits });
     });
+    lastPhones = phones.length ? phones : lastPhones;
     return phones;
   }
 
@@ -243,17 +259,60 @@
     }
 
     const name = getPatientNameFallback();
-    const message = `ola ${name} , exame teste`;
+    let message = `Olá ${name}.`;
+    if (procDesc) {
+      message += `\nProcedimento: ${procDesc}`;
+    }
+    if (procCode) {
+      message += `\nCódigo: ${procCode}`;
+    }
+    if (unitDesc) {
+      message += `\nUnidade: ${unitDesc}`;
+    }
+    if (dataHora) {
+      message += `\nData/Horário: ${dataHora}`;
+    }
+    message += `\n\nExame teste.`;
     const encoded = encodeURIComponent(message);
     window.open(`https://web.whatsapp.com/send?phone=${phone}&text=${encoded}`, "_blank", "noopener");
   }
 
-  function populatePhoneSelect() {
+  function populatePhoneSelect(force = false) {
+    const select = document.getElementById("celk-recepcao-select");
+    const loader = document.getElementById("celk-recepcao-loader");
+    if (!select) return;
+    if (loader) loader.style.display = "block";
+    if (force || !lastPhones.length) {
+      select.innerHTML = "";
+      const phones = extractPhones();
+      if (phones.length) {
+        lastPhones = phones;
+      }
+      const currentList = lastPhones;
+      if (!currentList.length) {
+        const option = document.createElement("option");
+        option.textContent = "Sem contatos";
+        option.value = "";
+        select.appendChild(option);
+        select.disabled = true;
+        return;
+      }
+      select.disabled = false;
+      currentList.forEach(phone => {
+        const option = document.createElement("option");
+        option.value = phone.digits;
+        option.textContent = phone.label;
+        select.appendChild(option);
+      });
+    }
+    if (loader) loader.style.display = "none";
+  }
+
+  function refreshPhoneSelect() {
     const select = document.getElementById("celk-recepcao-select");
     if (!select) return;
     select.innerHTML = "";
-    const phones = extractPhones();
-    if (!phones.length) {
+    if (!lastPhones.length) {
       const option = document.createElement("option");
       option.textContent = "Sem contatos";
       option.value = "";
@@ -262,7 +321,7 @@
       return;
     }
     select.disabled = false;
-    phones.forEach(phone => {
+    lastPhones.forEach(phone => {
       const option = document.createElement("option");
       option.value = phone.digits;
       option.textContent = phone.label;
@@ -280,12 +339,14 @@
     if (!autoCNS || alreadyProcessed) return;
     try {
       alreadyProcessed = true;
+      lastPhones = [];
       const cnsInput = await waitForElement('input[wicketpath="panelContainer_nodePanel_form_numeroCartao"]');
       typeText(cnsInput, autoCNS);
       const btnProcurar = document.querySelector('input[wicketpath="panelContainer_nodePanel_form_btnProcurar"]');
       btnProcurar?.click();
       const row = await waitForResultRow();
       selectedPatientName = row.querySelector("td:nth-child(3)")?.textContent?.trim() || selectedPatientName;
+      setTimeout(populatePhoneSelect, 800);
       clearAutoCNSParam();
     } catch (err) {
       console.warn("Falhou ao preencher CNS automaticamente:", err);
@@ -309,6 +370,9 @@
     setupRowSelectionCapture();
     const btn = document.getElementById("celk-recepcao-open");
     btn?.addEventListener("click", openWhatsApp);
+    autoRefreshTimer = setInterval(() => {
+      populatePhoneSelect(true);
+    }, 2000);
     fillForm();
   }
 
