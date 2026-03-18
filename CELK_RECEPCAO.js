@@ -318,7 +318,7 @@ SES - ${procedimentoTexto}
 
 *🚨FAVOR CONFIRMAR O RECEBIMENTO DESTA MENSAGEM.🚨*
 👉 A autorização deve ser retirada na recepção do Centro de Saúde Itacorubi, no horário das 7h às 16h30. Se preferir, podemos enviar o documento em PDF para que você possa imprimir.
-👉 Em caso de cancelamento, avisar com 3 dias de antecedência.
+👉 Em caso de cancelamento, avisar com 4 dias de antecedência.
 👉 Se o seu agendamento estiver marcado para sábado ou domingo, essa data é apenas fictícia. Por favor, siga as orientações indicadas na sua autorização.
 
 🚨 *IMPORTANTE: LEVAR PEDIDO MÉDICO + ESTE COMPROVANTE DE AGENDAMENTO.*
