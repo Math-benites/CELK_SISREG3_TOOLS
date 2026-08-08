@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Ferramenta da Íris - Toolkit Unificado (CELK + SISREG3)
 // @namespace    http://tampermonkey.net/
-// @version      1.2
+// @version      1.3
 // @description  Popup de WhatsApp/Ocorrência no CELK GEM, Auto-CNS na Recepção CELK e atalho de CNS no SISREG3 — tudo em um único script
 // @match        https://florianopolis.celk.com.br/gem/*
 // @match        https://florianopolis.celk.com.br/atendimento/recepcao/recepcao*
@@ -14,6 +14,10 @@
 
 (function () {
   "use strict";
+
+  // Atualize junto com o @version do cabeçalho a cada release.
+  const TOOLKIT_VERSION = "1.3";
+  const TOOLKIT_BUILD_DATE = "08/08/2026";
 
   // ==========================================================================
   // MÓDULO 1 — CELK GEM: popup de WhatsApp / Lançar Ocorrência / Imprimir
@@ -650,7 +654,7 @@ Sua consulta com especialista ou exame foi AUTORIZADO.
             <a href="#" class="tm-btn-inline tm-btn-save" id="cfg-salvar">${svg("save")}<span>Salvar</span></a>
           </div>
 
-          <p class="config-credit">By <a href="https://www.linkedin.com/in/matheus-benites/" target="_blank" rel="noopener noreferrer">Matheus Benites</a></p>
+          <p class="config-credit">By <a href="https://www.linkedin.com/in/matheus-benites/" target="_blank" rel="noopener noreferrer">Matheus Benites</a> · v${TOOLKIT_VERSION} (${TOOLKIT_BUILD_DATE})</p>
         </div>
       `;
       document.body.appendChild(overlay);
@@ -2089,7 +2093,6 @@ SES - ${procedimentoTexto}
   // ==========================================================================
   // ROTEAMENTO — decide qual módulo ativar de acordo com a URL atual
   // ==========================================================================
-  const TOOLKIT_VERSION = "1.2";
   const host = window.location.hostname;
   const path = window.location.pathname;
 
