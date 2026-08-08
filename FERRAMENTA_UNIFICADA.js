@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Ferramenta da Íris - Toolkit Unificado (CELK + SISREG3)
 // @namespace    http://tampermonkey.net/
-// @version      1.1
+// @version      1.2
 // @description  Popup de WhatsApp/Ocorrência no CELK GEM, Auto-CNS na Recepção CELK e atalho de CNS no SISREG3 — tudo em um único script
 // @match        https://florianopolis.celk.com.br/gem/*
 // @match        https://florianopolis.celk.com.br/atendimento/recepcao/recepcao*
@@ -2089,14 +2089,18 @@ SES - ${procedimentoTexto}
   // ==========================================================================
   // ROTEAMENTO — decide qual módulo ativar de acordo com a URL atual
   // ==========================================================================
+  const TOOLKIT_VERSION = "1.2";
   const host = window.location.hostname;
   const path = window.location.pathname;
 
   if (host === "florianopolis.celk.com.br" && path.startsWith("/gem/")) {
+    console.log(`[Ferramenta da Íris] v${TOOLKIT_VERSION} carregado — módulo: CELK GEM`);
     iniciarCelkGem();
   } else if (host === "florianopolis.celk.com.br" && path.startsWith("/atendimento/recepcao/recepcao")) {
+    console.log(`[Ferramenta da Íris] v${TOOLKIT_VERSION} carregado — módulo: CELK Recepção`);
     iniciarCelkRecepcao();
   } else if (host === "sisregiii.saude.gov.br") {
+    console.log(`[Ferramenta da Íris] v${TOOLKIT_VERSION} carregado — módulo: SISREG3`);
     iniciarSisreg3();
   }
 })();
