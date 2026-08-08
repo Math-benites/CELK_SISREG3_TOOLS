@@ -1,13 +1,15 @@
 // ==UserScript==
 // @name         Ferramenta da Íris - Toolkit Unificado (CELK + SISREG3)
 // @namespace    http://tampermonkey.net/
-// @version      1.0
+// @version      1.1
 // @description  Popup de WhatsApp/Ocorrência no CELK GEM, Auto-CNS na Recepção CELK e atalho de CNS no SISREG3 — tudo em um único script
 // @match        https://florianopolis.celk.com.br/gem/*
 // @match        https://florianopolis.celk.com.br/atendimento/recepcao/recepcao*
 // @match        https://sisregiii.saude.gov.br/*
 // @run-at       document-idle
 // @grant        none
+// @updateURL    https://raw.githubusercontent.com/Math-benites/CELK_SISREG3_TOOLS/master/FERRAMENTA_UNIFICADA.js
+// @downloadURL  https://raw.githubusercontent.com/Math-benites/CELK_SISREG3_TOOLS/master/FERRAMENTA_UNIFICADA.js
 // ==/UserScript==
 
 (function () {
