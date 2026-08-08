@@ -29,7 +29,21 @@
   TOP.__SISREG_TOOLKIT_LOADED__ = true;
 
   // =========================
-  // 1) CSS (injeta no documento do topo)
+  // 1) Ícones (SVG inline do Bootstrap Icons, MIT)
+  // =========================
+  const ICONS = {
+    grip: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"><path d="M7 2a1 1 0 1 1-2 0 1 1 0 0 1 2 0m3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0M7 5a1 1 0 1 1-2 0 1 1 0 0 1 2 0m3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0M7 8a1 1 0 1 1-2 0 1 1 0 0 1 2 0m3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0m-3 3a1 1 0 1 1-2 0 1 1 0 0 1 2 0m3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0m-3 3a1 1 0 1 1-2 0 1 1 0 0 1 2 0m3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0"/></svg>',
+    clipboard: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"><path d="M9.5 0a.5.5 0 0 1 .5.5.5.5 0 0 0 .5.5.5.5 0 0 1 .5.5V2a.5.5 0 0 1-.5.5h-5A.5.5 0 0 1 5 2v-.5a.5.5 0 0 1 .5-.5.5.5 0 0 0 .5-.5.5.5 0 0 1 .5-.5z"/><path d="M3 2.5a.5.5 0 0 1 .5-.5H4a.5.5 0 0 0 0-1h-.5A1.5 1.5 0 0 0 2 2.5v12A1.5 1.5 0 0 0 3.5 16h9a1.5 1.5 0 0 0 1.5-1.5v-12A1.5 1.5 0 0 0 12.5 1H12a.5.5 0 0 0 0 1h.5a.5.5 0 0 1 .5.5v12a.5.5 0 0 1-.5.5h-9a.5.5 0 0 1-.5-.5z"/><path d="M10.854 7.854a.5.5 0 0 0-.708-.708L7.5 9.793 6.354 8.646a.5.5 0 1 0-.708.708l1.5 1.5a.5.5 0 0 0 .708 0z"/></svg>',
+    link: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"><path fill-rule="evenodd" d="M8.636 3.5a.5.5 0 0 0-.5-.5H1.5A1.5 1.5 0 0 0 0 4.5v10A1.5 1.5 0 0 0 1.5 16h10a1.5 1.5 0 0 0 1.5-1.5V7.864a.5.5 0 0 0-1 0V14.5a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5v-10a.5.5 0 0 1 .5-.5h6.636a.5.5 0 0 0 .5-.5"/><path fill-rule="evenodd" d="M16 .5a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0 0 1h3.793L6.146 9.146a.5.5 0 1 0 .708.708L15 1.707V5.5a.5.5 0 0 0 1 0z"/></svg>',
+    check: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"><path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0"/></svg>',
+  };
+
+  function svg(name) {
+    return `<span class="svgicon">${ICONS[name]}</span>`;
+  }
+
+  // =========================
+  // 2) CSS (injeta no documento do topo)
   // =========================
   const css = `
 #sisreg-toolkit {
@@ -37,57 +51,90 @@
   flex-direction: column;
   position: fixed;
   z-index: 999999;
-  background: linear-gradient(180deg, #ffffff, #eef3fb);
-  border: 1px solid #d7e0ef;
-  text-align: center;
+  background: #ffffff;
+  border: 1px solid #e7eaf0;
   top: 25%;
   left: 80%;
-  box-shadow: 2px 4px 16px -4px rgba(0, 0, 0, 0.45);
-  min-width: 220px;
-  padding: 10px;
-  border-radius: 10px;
-  font-family: Arial, sans-serif;
+  box-shadow: 0 10px 28px -8px rgba(15, 23, 42, 0.18);
+  width: 200px;
+  padding: 12px;
+  border-radius: 16px;
+  font-family: 'Poppins', Arial, sans-serif;
 }
+.svgicon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+.svgicon svg { width: 100%; height: 100%; display: block; }
 #sisreg-toolkitheader {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 10px;
+  gap: 8px;
   cursor: move;
-  z-index: 10;
-  background: #02a093;
-  color: #fff;
-  border-radius: 8px;
+  padding-bottom: 9px;
   margin-bottom: 10px;
-  font-weight: bold;
-  letter-spacing: 0.4px;
+  border-bottom: 1px solid #f0f2f6;
 }
+.sisreg-drag-grip { color: #c7cdd7; width: 13px; height: 13px; flex-shrink: 0; }
+.sisreg-title {
+  flex: 1;
+  min-width: 0;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: #4b5563;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.action-list { display: flex; flex-direction: column; gap: 6px; }
 .toolkit-btn {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 6px;
+  gap: 10px;
+  height: 36px;
+  padding: 0 10px;
+  border-radius: 10px;
+  background: #f3f5f8;
+  color: #3d4650;
   text-decoration: none;
-  padding: 9px 12px;
-  margin: 4px 0;
-  border-radius: 8px;
-  font-size: 14px;
+  font-size: 12.5px;
+  font-weight: 600;
+  font-family: inherit;
+  border: none;
   cursor: pointer;
   user-select: none;
-  font-weight: bold;
-  color: #fff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
-  transition: transform 0.12s ease, box-shadow 0.12s ease;
-  background: linear-gradient(135deg, #b1ffcf, #7beaa2);
-  border: none;
+  width: 100%;
+  box-sizing: border-box;
+  transition: background 0.12s ease, transform 0.12s ease, color 0.12s ease;
 }
-.toolkit-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+.toolkit-btn .svgicon { width: 16px; height: 16px; }
+.toolkit-btn:hover, .toolkit-btn:focus { background: #e8ecf1; transform: translateX(1px); outline: none; }
+.toolkit-btn:active { transform: translateX(0); }
+.toolkit-btn-primary { background: #02a093; color: #fff; }
+.toolkit-btn-primary:hover { background: #028f84; }
+@keyframes toolkitCopiedPop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.05); }
+  100% { transform: scale(1); }
 }
-.toolkit-btn:active {
-  transform: translateY(1px);
+.toolkit-btn-success {
+  background: #25d366 !important;
+  color: #fff !important;
+  animation: toolkitCopiedPop 0.35s ease;
+}
+#toolkit-feedback {
+  display: none;
+  font-size: 11.5px;
+  font-weight: 600;
+  margin-top: 8px;
+  text-align: left;
 }
   `.trim();
 
@@ -109,8 +156,19 @@
     hostDoc.head.appendChild(styleEl);
   }
 
+  function ensureGoogleFont() {
+    const hostDoc = getHostDocument();
+    if (hostDoc.getElementById("sisreg-toolkit-font")) return;
+
+    const link = hostDoc.createElement("link");
+    link.id = "sisreg-toolkit-font";
+    link.rel = "stylesheet";
+    link.href = "https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap";
+    hostDoc.head.appendChild(link);
+  }
+
   // =========================
-  // 2) HELPERS: IFRAME / EXTRAÇÃO
+  // 3) HELPERS: IFRAME / EXTRAÇÃO
   // =========================
   function getFrameDocument() {
     // SISREG geralmente usa name="f_principal" e/ou id="f_main"
@@ -222,12 +280,31 @@
     return cns;
   }
 
-  async function copyCNS(feedbackEl) {
+  let copiedTimeout = null;
+  function showCopiedState(btn) {
+    if (!btn) return;
+    if (!btn.dataset.originalHtml) {
+      btn.dataset.originalHtml = btn.innerHTML;
+    }
+    clearTimeout(copiedTimeout);
+    btn.classList.remove("toolkit-btn-success");
+    // força reflow pra reiniciar a animação caso o usuário clique de novo rápido
+    void btn.offsetWidth;
+    btn.classList.add("toolkit-btn-success");
+    btn.innerHTML = `${svg("check")}<span>Copiado!</span>`;
+    copiedTimeout = setTimeout(() => {
+      btn.classList.remove("toolkit-btn-success");
+      btn.innerHTML = btn.dataset.originalHtml;
+    }, 1600);
+  }
+
+  async function copyCNS(btn, feedbackEl) {
     const cns = getCurrentCNS(feedbackEl);
     if (!cns) return;
 
     try {
       await navigator.clipboard.writeText(cns);
+      showCopiedState(btn);
       feedbackEl.style.display = "block";
       feedbackEl.style.color = "#02a093";
       feedbackEl.textContent = `CNS ${cns} copiado!`;
@@ -272,7 +349,7 @@
   }
 
   // =========================
-  // 3) UI (sempre no topo)
+  // 4) UI (sempre no topo)
   // =========================
   function bindPopupActions(popup) {
     const btnCopy = popup.querySelector("#btn-copy-cns");
@@ -282,7 +359,7 @@
     // usa onclick para evitar duplicar listeners em reinicializações
     btnCopy.onclick = (e) => {
       e.preventDefault();
-      copyCNS(feedbackEl);
+      copyCNS(btnCopy, feedbackEl);
     };
 
     btnOpenCelk.onclick = (e) => {
@@ -335,14 +412,15 @@
     popup = hostDoc.createElement("div");
     popup.id = "sisreg-toolkit";
     popup.innerHTML = `
-      <div id="sisreg-toolkitheader">📌 Regulação/SISREG </div>
-      <button type="button" class="toolkit-btn" id="btn-copy-cns">
-        <span>📋</span><span>Copiar CNS</span>
-      </button>
-      <button type="button" class="toolkit-btn" id="btn-open-celk">
-        <span>🔗</span><span>Abrir CELK</span>
-      </button>
-      <div id="toolkit-feedback" style="font-size:12px;color:#02a093;margin-top:6px;display:none;"></div>
+      <div id="sisreg-toolkitheader">
+        <span class="sisreg-drag-grip">${svg("grip")}</span>
+        <span class="sisreg-title">Regulação/SISREG</span>
+      </div>
+      <div class="action-list">
+        <button type="button" class="toolkit-btn" id="btn-copy-cns">${svg("clipboard")}<span>Copiar CNS</span></button>
+        <button type="button" class="toolkit-btn toolkit-btn-primary" id="btn-open-celk">${svg("link")}<span>Abrir CELK</span></button>
+      </div>
+      <div id="toolkit-feedback"></div>
     `;
 
     hostDoc.body.appendChild(popup);
@@ -352,12 +430,13 @@
   }
 
   function init() {
+    ensureGoogleFont();
     ensureStyle();
     ensurePopup();
   }
 
   // =========================
-  // 4) INIT + REINJEÇÃO SEM DUPLICAR
+  // 5) INIT + REINJEÇÃO SEM DUPLICAR
   // =========================
   init();
 
